@@ -1,0 +1,25 @@
+hostname CE-NIGERIA
+!
+interface Loopback0
+ ip address 192.168.10.1 255.255.255.0
+!
+interface GigabitEthernet0/1
+ description TO_SP-PE1-LAGOS
+ ip address 10.2.1.2 255.255.255.252
+ no shutdown
+!
+router bgp 65001
+ bgp router-id 192.168.10.1
+ bgp log-neighbor-changes
+ !
+ neighbor 10.2.1.1 remote-as 65100
+ neighbor 10.2.1.1 description eBGP-TO-PE1-LAGOS
+ !
+ address-family ipv4 unicast
+  neighbor 10.2.1.1 activate
+  network 192.168.10.0 mask 255.255.255.0
+ exit-address-family
+!
+line con 0
+ logging synchronous
+end

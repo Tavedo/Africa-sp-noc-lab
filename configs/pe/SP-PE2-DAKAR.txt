@@ -1,0 +1,62 @@
+hostname SP-PE2-DAKAR
+!
+ip vrf CUSTOMER
+ rd 65100:1
+ route-target export 65100:1
+ route-target import 65100:1
+!
+mpls label protocol ldp
+mpls ldp router-id Loopback0 force
+!
+interface Loopback0
+ ip address 10.0.0.2 255.255.255.255
+ ip ospf 1 area 0
+!
+interface GigabitEthernet0/0
+ description TO_CE-SENEGAL (VRF CUSTOMER)
+ ip vrf forwarding CUSTOMER
+ ip address 10.2.2.1 255.255.255.252
+ no shutdown
+!
+interface GigabitEthernet0/1
+ description TO_SP-P1-CORE
+ ip address 10.1.3.2 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+interface GigabitEthernet0/2
+ description TO_SP-RR1
+ ip address 10.1.8.1 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+router ospf 1
+ router-id 10.0.0.2
+!
+router bgp 65100
+ bgp router-id 10.0.0.2
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ !
+ neighbor 10.0.0.6 remote-as 65100
+ neighbor 10.0.0.6 description iBGP-TO-RR1
+ neighbor 10.0.0.6 update-source Loopback0
+ !
+ address-family vpnv4
+  neighbor 10.0.0.6 activate
+  neighbor 10.0.0.6 send-community extended
+ exit-address-family
+ !
+ address-family ipv4 vrf CUSTOMER
+  neighbor 10.2.2.2 remote-as 65002
+  neighbor 10.2.2.2 activate
+  neighbor 10.2.2.2 as-override
+ exit-address-family
+!
+line con 0
+ logging synchronous
+end

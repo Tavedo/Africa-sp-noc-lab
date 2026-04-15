@@ -1,0 +1,39 @@
+hostname SP-P2-CORE
+!
+mpls label protocol ldp
+mpls ldp router-id Loopback0 force
+!
+interface Loopback0
+ ip address 10.0.0.5 255.255.255.255
+ ip ospf 1 area 0
+!
+interface GigabitEthernet0/0
+ description TO_SP-P1-CORE
+ ip address 10.1.5.2 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+interface GigabitEthernet0/1
+ description TO_SP-PE3-JHB
+ ip address 10.1.4.1 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+interface GigabitEthernet0/3
+ description TO_SP-PE1-LAGOS
+ ip address 10.1.2.2 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+router ospf 1
+ router-id 10.0.0.5
+!
+line con 0
+ logging synchronous
+end

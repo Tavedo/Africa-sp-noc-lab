@@ -1,0 +1,53 @@
+hostname UPSTREAM-ISP
+!
+interface Loopback0
+ ip address 10.0.0.10 255.255.255.255
+!
+interface GigabitEthernet0/0
+ description TO_SP-PE1-LAGOS
+ ip address 203.0.113.1 255.255.255.252
+ no shutdown
+!
+interface GigabitEthernet0/1
+ description TO_EXT-CONN-0
+ ip address dhcp
+ no shutdown
+!
+interface GigabitEthernet0/2
+ description TO_SDWAN-HUB
+ ip address 100.64.1.2 255.255.255.252
+ no shutdown
+!
+interface GigabitEthernet0/3
+ description TO_SDWAN-SPOKE1
+ ip address 100.64.2.2 255.255.255.252
+ no shutdown
+!
+interface GigabitEthernet0/4
+ description TO_SDWAN-SPOKE2
+ ip address 100.64.3.2 255.255.255.252
+ no shutdown
+!
+router bgp 65000
+ bgp router-id 10.0.0.10
+ bgp log-neighbor-changes
+ !
+ neighbor 203.0.113.2 remote-as 65100
+ neighbor 203.0.113.2 description eBGP-TO-SP-PE1-LAGOS
+ !
+ address-family ipv4 unicast
+  neighbor 203.0.113.2 activate
+  network 1.1.1.0 mask 255.255.255.0
+  network 8.8.8.0 mask 255.255.255.0
+ exit-address-family
+!
+ip route 0.0.0.0 0.0.0.0 dhcp
+ip route 1.1.1.0 255.255.255.0 Null0
+ip route 8.8.8.0 255.255.255.0 Null0
+ip route 100.64.1.0 255.255.255.252 Null0
+ip route 100.64.2.0 255.255.255.252 Null0
+ip route 100.64.3.0 255.255.255.252 Null0
+!
+line con 0
+ logging synchronous
+end

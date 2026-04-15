@@ -1,0 +1,88 @@
+hostname SP-RR1
+!
+mpls label protocol ldp
+mpls ldp router-id Loopback0 force
+!
+interface Loopback0
+ ip address 10.0.0.6 255.255.255.255
+ ip ospf 1 area 0
+!
+interface GigabitEthernet0/2
+ description TO_SP-PE2-DAKAR
+ ip address 10.1.8.2 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+interface GigabitEthernet0/3
+ description TO_SP-P1-CORE
+ ip address 10.1.6.2 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+interface GigabitEthernet0/4
+ description TO_SP-PE1-LAGOS
+ ip address 10.1.7.2 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+interface GigabitEthernet0/5
+ description TO_SP-PE3-JHB
+ ip address 10.1.9.1 255.255.255.252
+ ip ospf 1 area 0
+ ip ospf network point-to-point
+ mpls ip
+ no shutdown
+!
+router ospf 1
+ router-id 10.0.0.6
+!
+router bgp 65100
+ bgp router-id 10.0.0.6
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ !
+ ! NOTE: No peer-group used — IOSv does not support peer-group
+ ! activation in address-family context. All neighbors declared individually.
+ !
+ neighbor 10.0.0.1 remote-as 65100
+ neighbor 10.0.0.1 description PE1-LAGOS
+ neighbor 10.0.0.1 update-source Loopback0
+ !
+ neighbor 10.0.0.2 remote-as 65100
+ neighbor 10.0.0.2 description PE2-DAKAR
+ neighbor 10.0.0.2 update-source Loopback0
+ !
+ neighbor 10.0.0.3 remote-as 65100
+ neighbor 10.0.0.3 description PE3-JHB
+ neighbor 10.0.0.3 update-source Loopback0
+ !
+ address-family ipv4 unicast
+  neighbor 10.0.0.1 activate
+  neighbor 10.0.0.1 route-reflector-client
+  neighbor 10.0.0.2 activate
+  neighbor 10.0.0.2 route-reflector-client
+  neighbor 10.0.0.3 activate
+  neighbor 10.0.0.3 route-reflector-client
+ exit-address-family
+ !
+ address-family vpnv4
+  neighbor 10.0.0.1 activate
+  neighbor 10.0.0.1 send-community extended
+  neighbor 10.0.0.1 route-reflector-client
+  neighbor 10.0.0.2 activate
+  neighbor 10.0.0.2 send-community extended
+  neighbor 10.0.0.2 route-reflector-client
+  neighbor 10.0.0.3 activate
+  neighbor 10.0.0.3 send-community extended
+  neighbor 10.0.0.3 route-reflector-client
+ exit-address-family
+!
+line con 0
+ logging synchronous
+end

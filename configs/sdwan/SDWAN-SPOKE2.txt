@@ -1,0 +1,32 @@
+hostname SDWAN-SPOKE2
+!
+interface Loopback0
+ ip address 172.16.2.1 255.255.255.0
+!
+interface GigabitEthernet0/0
+ description INTERNET-UNDERLAY-TO-UPSTREAM-ISP
+ ip address 100.64.3.1 255.255.255.252
+ no shutdown
+!
+interface Tunnel0
+ description DMVPN-SDWAN-OVERLAY
+ ip address 10.100.0.3 255.255.255.0
+ ip nhrp map 10.100.0.1 100.64.1.1
+ ip nhrp map multicast 100.64.1.1
+ ip nhrp network-id 1
+ ip nhrp nhs 10.100.0.1
+ ip ospf network broadcast
+ ip ospf priority 0
+ tunnel source GigabitEthernet0/0
+ tunnel mode gre multipoint
+ tunnel key 100
+ no shutdown
+!
+router ospf 2
+ router-id 172.16.2.1
+ network 10.100.0.0 0.0.0.255 area 0
+ network 172.16.2.0 0.0.0.255 area 0
+!
+line con 0
+ logging synchronous
+end

@@ -1,0 +1,25 @@
+hostname CE-DIA
+!
+interface Loopback0
+ ip address 192.168.50.1 255.255.255.0
+!
+interface GigabitEthernet0/0
+ description TO_SP-PE1-LAGOS (VRF DIA-CUSTOMER)
+ ip address 10.2.5.2 255.255.255.252
+ no shutdown
+!
+router bgp 65005
+ bgp router-id 192.168.50.1
+ bgp log-neighbor-changes
+ !
+ neighbor 10.2.5.1 remote-as 65100
+ neighbor 10.2.5.1 description eBGP-DIA-SERVICE
+ !
+ address-family ipv4 unicast
+  neighbor 10.2.5.1 activate
+  network 192.168.50.0 mask 255.255.255.0
+ exit-address-family
+!
+line con 0
+ logging synchronous
+end
