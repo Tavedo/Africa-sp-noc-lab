@@ -34,6 +34,13 @@ interface GigabitEthernet0/2
  mpls ip
  no shutdown
 !
+interface GigabitEthernet0/3
+ description TO_SP-P2-CORE
+ ip address 10.1.10.1 255.255.255.252
+ ip ospf 1 area 0
+ mpls ip
+ no shutdown
+!
 router ospf 1
  router-id 10.0.0.2
 !
