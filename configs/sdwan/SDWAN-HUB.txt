@@ -1,10 +1,26 @@
 hostname SDWAN-HUB
 !
+! FIXED: Added IPsec — plain GRE DMVPN does not form reliably on IOSv
+crypto isakmp policy 10
+ encr aes 256
+ hash sha
+ authentication pre-share
+ group 5
+ lifetime 86400
+!
+crypto isakmp key cisco123 address 0.0.0.0 0.0.0.0
+!
+crypto ipsec transform-set AES-SHA esp-aes 256 esp-sha-hmac
+ mode transport
+!
+crypto ipsec profile DMVPN-IPSEC-PROFILE
+ set transform-set AES-SHA
+!
 interface Loopback0
  ip address 172.16.0.1 255.255.255.0
 !
 interface GigabitEthernet0/0
- description INTERNET-UNDERLAY-TO-UPSTREAM-ISP
+ description UNDERLAY-TO-UPSTREAM-ISP
  ip address 100.64.1.1 255.255.255.252
  no shutdown
 !
@@ -18,7 +34,11 @@ interface Tunnel0
  tunnel source GigabitEthernet0/0
  tunnel mode gre multipoint
  tunnel key 100
+ tunnel protection ipsec profile DMVPN-IPSEC-PROFILE
  no shutdown
+!
+! FIXED: explicit default route — dhcp not reliable in CML
+ip route 0.0.0.0 0.0.0.0 100.64.1.2
 !
 router ospf 2
  router-id 172.16.0.1
