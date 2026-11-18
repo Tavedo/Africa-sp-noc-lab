@@ -8,8 +8,8 @@
 #
 #  Credentials come from environment variables (nothing secret in the file):
 #     export PYATS_USERNAME=netauto
-#     export PYATS_PASSWORD='Cisco123!'
-#     export PYATS_ENABLE='Cisco123!'
+#     export PYATS_PASSWORD='<your-password>'
+#     export PYATS_ENABLE='<your-password>'
 # ----------------------------------------------------------------------
 testbed:
   name: Africa-SP-NOC

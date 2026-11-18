@@ -101,8 +101,8 @@ pip install -r requirements.txt
 
 # credentials (never hard-coded in the testbed)
 export PYATS_USERNAME=netauto
-export PYATS_PASSWORD='Cisco123!'
-export PYATS_ENABLE='Cisco123!'
+export PYATS_PASSWORD='<your-password>'
+export PYATS_ENABLE='<your-password>'
 
 # full suite
 pyats run job jobs/full_test_job.py --testbed-file testbed/testbed.yaml
@@ -127,7 +127,7 @@ Success Rate: 100.00 %
   Ubuntu 24.04 node on a management subnet advertised into OSPF).
 - Telnet (or SSH) + a `privilege 15` login on each router:
   ```
-  username netauto privilege 15 secret Cisco123!
+  username netauto privilege 15 secret <your-password>
   line vty 0 4
    login local
    transport input ssh telnet

@@ -1,8 +1,8 @@
 """pyATS job - runs the full Africa SP NOC validation suite.
 
     export PYATS_USERNAME=netauto
-    export PYATS_PASSWORD='Cisco123!'
-    export PYATS_ENABLE='Cisco123!'
+    export PYATS_PASSWORD='<your-password>'
+    export PYATS_ENABLE='<your-password>'
     pyats run job jobs/full_test_job.py --testbed-file testbed/testbed.yaml
 """
 import os
