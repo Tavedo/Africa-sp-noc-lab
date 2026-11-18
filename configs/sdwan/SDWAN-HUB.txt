@@ -8,7 +8,7 @@ crypto isakmp policy 10
  group 5
  lifetime 86400
 !
-crypto isakmp key cisco123 address 0.0.0.0 0.0.0.0
+crypto isakmp key <LAB_PSK> address 0.0.0.0 0.0.0.0
 !
 crypto ipsec transform-set AES-SHA esp-aes 256 esp-sha-hmac
  mode transport
