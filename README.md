@@ -364,7 +364,7 @@ Because the management subnet is in the IGP, every router learns the path to the
 # on the Ubuntu NOC node
 python3 -m venv ~/venv && source ~/venv/bin/activate
 pip install -r pyats/requirements.txt
-export PYATS_USERNAME=netauto PYATS_PASSWORD='Cisco123!' PYATS_ENABLE='Cisco123!'
+export PYATS_USERNAME=netauto PYATS_PASSWORD='<your-password>' PYATS_ENABLE='<your-password>'
 pyats run job pyats/jobs/full_test_job.py --testbed-file pyats/testbed/testbed.yaml
 ```
 
