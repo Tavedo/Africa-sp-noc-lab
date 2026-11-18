@@ -18,6 +18,7 @@ Built as a practical showcase for NOC/SP engineer roles requiring hands-on knowl
 - [Lab Setup (CML)](#lab-setup-cml)
 - [Verification Commands](#verification-commands)
 - [NOC Scenarios](#noc-scenarios)
+- [Automated Validation (pyATS)](#automated-validation-pyats)
 - [Key Lessons from the Build](#key-lessons-from-the-build)
 - [Skills Demonstrated](#skills-demonstrated)
 - [File Structure](#file-structure)
@@ -339,6 +340,44 @@ See `scenarios/` folder for full diagnosis steps and sample ticket documentation
 
 ---
 
+## Automated Validation (pyATS)
+
+Beyond manual `show` commands, the lab is validated by an automated **Cisco pyATS** suite that turns the verification checklist into a pass/fail report — green = healthy, red = regression — run from a dedicated NOC control node inside the lab.
+
+### NOC control node
+
+An **Ubuntu 24.04 node (`UBUNTU-NOC`)** was added as the automation host, with two legs:
+
+- **Internet leg** — NAT via UPSTREAM-ISP, so `pip install` works.
+- **Management leg** — into `SP-P2-CORE G0/2` on `10.99.99.0/24`, **advertised into OSPF area 0**.
+
+Because the management subnet is in the IGP, every router learns the path to the control node automatically — pyATS reaches all six loopbacks from a single subnet with no static routes scattered across the core. (Telnet is used on purpose: Ubuntu 24.04's OpenSSH rejects IOSv's legacy crypto, and this is a closed management segment.)
+
+### What it asserts
+
+- **Control plane** (`test_control_plane.py`) — every OSPF neighbor FULL, every LDP neighbor Operational, every PE↔RR VPNv4 session Established (P routers correctly carry 0).
+- **L3VPN services + isolation** (`test_vpn_services.py`) — PE2-DAKAR and PE3-JHB each import the other site's prefix over VPNv4 (RT `65100:1` working), and PE1-LAGOS `NIGER-MPLS` is asserted to hold **no** CUSTOMER prefix. The test turns red the moment a route-target leak occurs. It checks **route presence**, not ping — immune to the PE-CE source-address trap noted below.
+
+### Run it
+
+```bash
+# on the Ubuntu NOC node
+python3 -m venv ~/venv && source ~/venv/bin/activate
+pip install -r pyats/requirements.txt
+export PYATS_USERNAME=netauto PYATS_PASSWORD='Cisco123!' PYATS_ENABLE='Cisco123!'
+pyats run job pyats/jobs/full_test_job.py --testbed-file pyats/testbed/testbed.yaml
+```
+
+Last run: **100% pass** — 3 control-plane testcases + 2 L3VPN-service testcases across the backbone.
+
+### The lab as a real carrier
+
+[`pyats/docs/subsea-backbone-map.html`](pyats/docs/subsea-backbone-map.html) renders the topology as the subsea route it models — Barcelona → Morocco → Dakar → Lagos → Johannesburg — with a toggle between the physical cable and the customer-VPN view.
+
+![Subsea backbone map](pyats/docs/subsea-backbone-map.png)
+
+---
+
 ## Key Lessons from the Build
 
 These are real errors encountered and resolved during the lab build — each one is a valuable lesson for SP NOC work:
@@ -376,6 +415,7 @@ These are real errors encountered and resolved during the lab build — each one
 | Ticket documentation       | Structured incident logging aligned to P1/P2/P3 SLAs |
 | Traffic analysis           | Interface utilisation, drops, bandwidth saturation    |
 | Real IOS error diagnosis   | Every error in Key Lessons was encountered and resolved on live IOS |
+| Network automation (pyATS) | Python test suite validating control plane + VPN isolation from a NOC control node |
 
 ---
 
@@ -413,10 +453,19 @@ africa-sp-noc-lab/
 │   ├── 03-high-latency-dakar.md
 │   ├── 04-ldp-neighbor-lost.md
 │   └── 05-vrf-route-leak.md
-└── docs/
-    ├── ip-addressing.md
-    ├── vrf-design.md
-    └── noc-runbook.md
+├── docs/
+│   ├── ip-addressing.md
+│   ├── vrf-design.md
+│   └── noc-runbook.md
+└── pyats/                      # automated validation (Cisco pyATS)
+    ├── README.md
+    ├── requirements.txt
+    ├── testbed/testbed.yaml
+    ├── tests/
+    │   ├── test_control_plane.py
+    │   └── test_vpn_services.py
+    ├── jobs/full_test_job.py
+    └── docs/subsea-backbone-map.html
 ```
 
 ---

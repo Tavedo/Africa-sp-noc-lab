@@ -1,0 +1,4 @@
+# Install on the Ubuntu NOC (Ubuntu 24.04 needs a venv - PEP 668):
+#     python3 -m venv ~/venv && source ~/venv/bin/activate
+#     pip install -r requirements.txt
+pyats[full]>=24.0

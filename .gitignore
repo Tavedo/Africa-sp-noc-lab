@@ -1,3 +1,20 @@
+# --- CML topology exports (kept local; may embed device configs) ---
 *.yaml
 Africa-SP-Noc-cml-Lab.yaml
 topology.yaml
+
+# --- but the pyATS testbed MUST stay tracked despite *.yaml above ---
+!pyats/testbed/testbed.yaml
+
+# --- pyATS / Python runtime ---
+__pycache__/
+*.pyc
+*.log
+archive/
+runinfo/
+*.zip
+
+# --- venv / local env ---
+venv/
+.venv/
+env.sh

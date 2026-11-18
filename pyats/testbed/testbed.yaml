@@ -1,0 +1,47 @@
+# ----------------------------------------------------------------------
+#  pyATS testbed — Africa SP NOC Lab
+#
+#  The control node (UBUNTU-NOC inside the lab) connects over TELNET to
+#  each device loopback. Telnet is used deliberately: modern OpenSSH on
+#  Ubuntu 24.04 rejects IOSv's legacy crypto, and this is a closed
+#  management segment, so telnet avoids a KexAlgorithms/HostKey rabbit hole.
+#
+#  Credentials come from environment variables (nothing secret in the file):
+#     export PYATS_USERNAME=netauto
+#     export PYATS_PASSWORD='Cisco123!'
+#     export PYATS_ENABLE='Cisco123!'
+# ----------------------------------------------------------------------
+testbed:
+  name: Africa-SP-NOC
+  credentials:
+    default:
+      username: "%ENV{PYATS_USERNAME}"
+      password: "%ENV{PYATS_PASSWORD}"
+    enable:
+      password: "%ENV{PYATS_ENABLE}"
+
+devices:
+  SP-PE1-LAGOS:        # Nigeria PoP  · VRF NIGER-MPLS (isolated customer)
+    os: ios
+    type: router
+    connections: {cli: {protocol: telnet, ip: 10.0.0.1}}
+  SP-PE2-DAKAR:        # Senegal PoP  · VRF CUSTOMER (site 1 of shared VPN)
+    os: ios
+    type: router
+    connections: {cli: {protocol: telnet, ip: 10.0.0.2}}
+  SP-PE3-JHB:          # S.Africa PoP · VRF CUSTOMER (site 2 of shared VPN)
+    os: ios
+    type: router
+    connections: {cli: {protocol: telnet, ip: 10.0.0.3}}
+  SP-P1-CORE:          # P / LSR · OSPF + LDP, no BGP
+    os: ios
+    type: router
+    connections: {cli: {protocol: telnet, ip: 10.0.0.4}}
+  SP-P2-CORE:          # P / LSR · also hosts the NOC mgmt subnet (Gi0/2)
+    os: ios
+    type: router
+    connections: {cli: {protocol: telnet, ip: 10.0.0.5}}
+  SP-RR1:              # iBGP VPNv4 route reflector
+    os: ios
+    type: router
+    connections: {cli: {protocol: telnet, ip: 10.0.0.6}}

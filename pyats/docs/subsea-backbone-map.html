@@ -1,0 +1,406 @@
+<title>Barcelona to Africa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* Layout concept: a night nautical-chart. Dark ocean canvas with a glowing
+     subsea fibre route on the left/main, a brass-accented briefing rail on the
+     right. Deliberate single (dark) theme — a lit chart on a dark sea. */
+  :root{
+    --sea-abyss:#07131d;        /* page / deep ocean */
+    --sea:#0c2030;              /* ocean fill */
+    --sea-hi:#123048;           /* ocean highlight */
+    --land:#17333f;             /* continents */
+    --land-edge:#2d6076;        /* coastline glow */
+    --grid:#1b3747;             /* graticule */
+    --fibre:#39e3c7;            /* the cable */
+    --fibre-dim:#1d6d66;
+    --brass:#f0b23f;            /* hub accent */
+    --vpn:#49d98a;             /* same-VPN green */
+    --isolated:#ff6b6b;         /* isolated customer */
+    --fg:#e2edf2;
+    --muted:#86a3b4;
+    --panel:#0b1c28;
+    --panel-edge:#1c3a4b;
+    color-scheme: dark;
+    --maxw:1180px;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --disp:"Space Grotesk","Inter",system-ui,sans-serif;
+    --mono:"Space Mono","SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 700px at 72% -5%, #0f2638 0%, transparent 55%),
+      radial-gradient(900px 900px at 10% 110%, #0a1f2e 0%, transparent 60%),
+      var(--sea-abyss);
+    color:var(--fg);
+    font-family:var(--sans);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding-block:clamp(22px,4vw,44px);
+    padding-left:max(16px,env(safe-area-inset-left,0px));
+    padding-right:max(16px,env(safe-area-inset-right,0px));
+  }
+  header .eyebrow{
+    font-family:var(--mono);
+    text-transform:uppercase;
+    letter-spacing:.22em;
+    font-size:.72rem;
+    color:var(--brass);
+    margin:0 0 .5rem;
+  }
+  header h1{
+    font-family:var(--disp);
+    font-weight:700;
+    font-size:clamp(1.9rem,5.5vw,3.1rem);
+    line-height:1.02;
+    letter-spacing:-.02em;
+    margin:0;
+    text-wrap:balance;
+  }
+  header h1 span{color:var(--brass)}
+  header p.lede{
+    max-width:60ch;
+    color:var(--muted);
+    font-size:clamp(.98rem,2vw,1.08rem);
+    margin:.9rem 0 0;
+  }
+  .stage{
+    display:grid;
+    grid-template-columns:1.55fr 1fr;
+    gap:clamp(14px,2.4vw,28px);
+    margin-top:clamp(22px,3.5vw,38px);
+    align-items:start;
+  }
+  @media(max-width:820px){ .stage{grid-template-columns:1fr} }
+
+  .mapcard{
+    position:relative;
+    border:1px solid var(--panel-edge);
+    border-radius:16px;
+    overflow:hidden;
+    background:linear-gradient(180deg,#0a1d2b,#071722);
+    min-width:0;
+    box-shadow:0 24px 60px -30px #000;
+  }
+  .toolbar{
+    position:absolute; z-index:3; top:12px; left:12px; right:12px;
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  }
+  .seg{
+    display:inline-flex; background:#081823cc; backdrop-filter:blur(6px);
+    border:1px solid var(--panel-edge); border-radius:999px; padding:3px;
+  }
+  .seg button{
+    font:600 .78rem/1 var(--sans); color:var(--muted);
+    background:transparent; border:0; padding:7px 13px; border-radius:999px;
+    cursor:pointer; letter-spacing:.01em;
+  }
+  .seg button[aria-pressed="true"]{ background:var(--brass); color:#1a1205; }
+  .seg button:focus-visible{outline:2px solid var(--fibre); outline-offset:2px}
+  .modehint{
+    font-family:var(--mono); font-size:.68rem; color:var(--muted);
+    background:#081823aa; border:1px solid var(--panel-edge);
+    padding:5px 9px; border-radius:999px;
+  }
+  svg.map{display:block; width:100%; height:auto}
+
+  /* map elements */
+  .ocean{fill:var(--sea)}
+  .graticule line{stroke:var(--grid); stroke-width:1}
+  .equator{stroke:#2a5064; stroke-width:1.2; stroke-dasharray:2 7}
+  .waterlabel{fill:#3f6678; font:italic 300 15px var(--sans); letter-spacing:.14em; text-transform:uppercase}
+  .land{fill:var(--land); stroke:var(--land-edge); stroke-width:1.4}
+  .countrylabel{fill:#5f8699; font:600 13px var(--mono); letter-spacing:.08em}
+
+  .cable-base{fill:none; stroke:var(--fibre-dim); stroke-width:3.4; stroke-linecap:round}
+  .cable-flow{fill:none; stroke:var(--fibre); stroke-width:2.2; stroke-linecap:round;
+    stroke-dasharray:3 16; filter:drop-shadow(0 0 5px var(--fibre));
+    animation:flow 2.6s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-38}}
+
+  .vpnlink{fill:none; stroke:var(--vpn); stroke-width:2.4; stroke-dasharray:8 7;
+    filter:drop-shadow(0 0 6px var(--vpn)); opacity:0; animation:vpnflow 1.6s linear infinite;
+    transition:opacity .35s}
+  @keyframes vpnflow{to{stroke-dashoffset:-30}}
+  .blocked{stroke:var(--isolated); stroke-width:2.2; stroke-dasharray:2 9; opacity:0; transition:opacity .35s}
+
+  .pop{cursor:pointer}
+  .pop .halo{fill:var(--fibre); opacity:.14}
+  .pop .dot{fill:var(--sea-abyss); stroke:var(--fibre); stroke-width:2.4}
+  .pop .dot.hub{stroke:var(--brass)}
+  .pop .ring{fill:none; stroke:var(--fibre); stroke-width:1.2; opacity:.5}
+  .pop text.name{fill:var(--fg); font:700 16px var(--disp)}
+  .pop text.sub{fill:var(--muted); font:600 11.5px var(--mono); letter-spacing:.04em}
+  .pop[aria-selected="true"] .dot{stroke-width:3.6}
+  .pop[aria-selected="true"] .halo{opacity:.3}
+  .pop:focus-visible{outline:none}
+  .pop:focus-visible .ring{opacity:1; stroke:var(--brass)}
+
+  /* VPN mode recolouring */
+  svg[data-mode="vpn"] .cable-flow{opacity:.25}
+  svg[data-mode="vpn"] .cable-base{opacity:.4}
+  svg[data-mode="vpn"] .vpnlink{opacity:1}
+  svg[data-mode="vpn"] .blocked{opacity:1}
+  svg[data-mode="vpn"] .pop.same .dot{stroke:var(--vpn)}
+  svg[data-mode="vpn"] .pop.same .halo{fill:var(--vpn); opacity:.28}
+  svg[data-mode="vpn"] .pop.iso .dot{stroke:var(--isolated)}
+  svg[data-mode="vpn"] .pop.iso .halo{fill:var(--isolated); opacity:.28}
+  svg[data-mode="vpn"] .pop.transit{opacity:.5}
+
+  @media(prefers-reduced-motion:reduce){
+    .cable-flow,.vpnlink{animation:none}
+    .cable-flow{stroke-dasharray:none; stroke-width:2.2}
+  }
+
+  /* briefing rail */
+  .rail{display:flex; flex-direction:column; gap:14px; min-width:0}
+  .detail{
+    border:1px solid var(--panel-edge); border-radius:14px; background:var(--panel);
+    padding:18px 18px 16px;
+  }
+  .detail .tag{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--brass);
+  }
+  .detail h2{font-family:var(--disp); font-size:1.4rem; margin:.25rem 0 .1rem; letter-spacing:-.01em}
+  .detail .coords{font-family:var(--mono); font-size:.76rem; color:var(--muted); margin-bottom:.7rem}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:4px 14px; font-size:.9rem; margin:0}
+  .kv dt{color:var(--muted); font-family:var(--mono); font-size:.76rem; letter-spacing:.03em; padding-top:2px}
+  .kv dd{margin:0; color:var(--fg)}
+  .kv dd code{font-family:var(--mono); font-size:.82em; color:var(--fibre);
+    background:#0a222f; padding:1px 6px; border-radius:5px}
+  .detail .note{margin:.8rem 0 0; font-size:.88rem; color:var(--muted)}
+  .chip{display:inline-block; font:700 .68rem/1 var(--mono); padding:4px 8px; border-radius:6px;
+    letter-spacing:.05em; vertical-align:middle}
+  .chip.same{background:#103626; color:var(--vpn); border:1px solid #1d6b48}
+  .chip.iso{background:#3a1717; color:var(--isolated); border:1px solid #7a2e2e}
+  .chip.hub{background:#38290a; color:var(--brass); border:1px solid #7a5a1c}
+  .chip.transit{background:#0d2735; color:var(--fibre); border:1px solid #1d5a5a}
+
+  .legend{border:1px solid var(--panel-edge); border-radius:14px; background:var(--panel); padding:16px 18px}
+  .legend h3{font-family:var(--disp); font-size:.95rem; margin:0 0 .6rem; letter-spacing:.01em}
+  .legend ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px}
+  .legend li{display:flex; gap:10px; align-items:flex-start; font-size:.84rem; color:var(--muted)}
+  .legend .sw{flex:none; width:22px; height:3px; border-radius:2px; margin-top:8px}
+  .legend b{color:var(--fg); font-weight:600}
+
+  .story{margin-top:clamp(20px,3vw,34px); border-top:1px solid var(--panel-edge); padding-top:22px}
+  .story h3{font-family:var(--disp); font-size:1.15rem; margin:0 0 .4rem}
+  .story p{max-width:72ch; color:var(--muted); font-size:.95rem; margin:.5rem 0}
+  .story p b{color:var(--fg)}
+  .story code{font-family:var(--mono); font-size:.85em; color:var(--fibre)}
+  footer{margin-top:28px; color:var(--muted); font-size:.8rem; font-family:var(--mono); letter-spacing:.03em}
+  footer b{color:var(--brass)}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&display=swap">
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Barcelona → Africa · SP backbone · lab-as-carrier</p>
+    <h1>The subsea route <span>behind the lab</span></h1>
+    <p class="lede">Your Africa SP NOC lab, drawn as the cable it models: a fibre leaving
+      Barcelona, landing in Morocco, then running down the West African coast to Dakar,
+      Lagos and on to Johannesburg. Every node on the map is a node in the lab. Flip to the
+      <b style="color:var(--vpn)">VPN view</b> to see which customer sites can talk — and which can't.</p>
+  </header>
+
+  <div class="stage">
+    <div class="mapcard">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Map view">
+          <button id="btnPhys" aria-pressed="true">Physical cable</button>
+          <button id="btnVpn" aria-pressed="false">Customer VPN</button>
+        </div>
+        <span class="modehint" id="modehint">Lit segments = live subsea fibre</span>
+      </div>
+
+      <svg class="map" viewBox="0 0 1000 1300" data-mode="physical" role="img"
+           aria-label="Map of the subsea cable route from Barcelona to Johannesburg with lab nodes marked">
+        <rect class="ocean" x="0" y="0" width="1000" height="1300"/>
+        <g class="graticule">
+          <line x1="125" y1="0" x2="125" y2="1300"/><line x1="250" y1="0" x2="250" y2="1300"/>
+          <line x1="375" y1="0" x2="375" y2="1300"/><line x1="500" y1="0" x2="500" y2="1300"/>
+          <line x1="625" y1="0" x2="625" y2="1300"/><line x1="750" y1="0" x2="750" y2="1300"/>
+          <line x1="875" y1="0" x2="875" y2="1300"/>
+          <line x1="0" y1="130" x2="1000" y2="130"/><line x1="0" y1="260" x2="1000" y2="260"/>
+          <line x1="0" y1="390" x2="1000" y2="390"/><line x1="0" y1="520" x2="1000" y2="520"/>
+          <line x1="0" y1="650" x2="1000" y2="650"/><line x1="0" y1="910" x2="1000" y2="910"/>
+          <line x1="0" y1="1040" x2="1000" y2="1040"/><line x1="0" y1="1170" x2="1000" y2="1170"/>
+          <line class="equator" x1="0" y1="810" x2="1000" y2="810"/>
+        </g>
+        <text class="waterlabel" x="60" y="330">Atlantic</text>
+        <text class="waterlabel" x="705" y="150">Mediterranean</text>
+        <text class="waterlabel" x="815" y="815" style="font-size:12px">Equator</text>
+
+        <!-- continents (stylised) -->
+        <path class="land" d="M430,250 C430,198 478,158 548,164 C606,168 640,196 632,232
+          C626,258 566,272 505,270 C462,268 430,278 430,250 Z"/>
+        <path class="land" d="M392,300 C472,284 652,284 722,306 C748,332 762,432 776,520
+          C792,560 760,602 720,616 C712,702 700,862 676,982 C652,1082 622,1162 586,1182
+          C560,1192 520,1150 500,1090 C470,1000 442,900 402,800 C362,720 300,692 270,642
+          C236,602 186,582 186,546 C186,500 242,470 302,456 C342,446 362,400 362,360
+          C367,330 372,312 392,300 Z"/>
+
+        <text class="countrylabel" x="360" y="300">MOROCCO</text>
+        <text class="countrylabel" x="140" y="648">SENEGAL</text>
+        <text class="countrylabel" x="470" y="730">NIGERIA</text>
+        <text class="countrylabel" x="560" y="1055">SOUTH AFRICA</text>
+        <text class="countrylabel" x="470" y="200" style="fill:#6a93a6">SPAIN</text>
+
+        <!-- cable route -->
+        <path class="cable-base" d="M540,205 C500,250 460,300 425,335 C360,430 300,530 260,620
+          C330,700 450,720 520,760 C600,850 640,970 655,1075"/>
+        <path class="cable-flow" d="M540,205 C500,250 460,300 425,335 C360,430 300,530 260,620
+          C330,700 450,720 520,760 C600,850 640,970 655,1075"/>
+
+        <!-- VPN overlay: Dakar <-> Johannesburg (same RT) -->
+        <path class="vpnlink" d="M260,620 C120,820 150,1060 655,1075"/>
+        <!-- blocked: Lagos cannot reach Dakar -->
+        <path class="blocked" d="M520,760 C430,710 350,670 260,620"/>
+
+        <!-- nodes -->
+        <g class="pop transit" data-id="bcn" tabindex="0" role="button" aria-label="Barcelona">
+          <circle class="halo" cx="540" cy="205" r="26"/>
+          <circle class="dot hub" cx="540" cy="205" r="9"/>
+          <circle class="ring" cx="540" cy="205" r="17"/>
+          <text class="name" x="558" y="200">Barcelona</text>
+          <text class="sub" x="558" y="216">Europe hub · NOC · AS 65000</text>
+        </g>
+        <g class="pop transit" data-id="mar" tabindex="0" role="button" aria-label="Morocco landing">
+          <circle class="halo" cx="425" cy="335" r="22"/>
+          <circle class="dot" cx="425" cy="335" r="8"/>
+          <text class="name" x="442" y="331">Morocco</text>
+          <text class="sub" x="442" y="347">P-core · LSR transit</text>
+        </g>
+        <g class="pop same" data-id="dkr" tabindex="0" role="button" aria-label="Dakar">
+          <circle class="halo" cx="260" cy="620" r="24"/>
+          <circle class="dot" cx="260" cy="620" r="9"/>
+          <text class="name" x="86" y="600">Dakar</text>
+          <text class="sub" x="86" y="616">PE2 · VRF CUSTOMER</text>
+        </g>
+        <g class="pop iso" data-id="lgs" tabindex="0" role="button" aria-label="Lagos">
+          <circle class="halo" cx="520" cy="760" r="24"/>
+          <circle class="dot" cx="520" cy="760" r="9"/>
+          <text class="name" x="538" y="756">Lagos</text>
+          <text class="sub" x="538" y="772">PE1 · VRF NIGER-MPLS</text>
+        </g>
+        <g class="pop same" data-id="jhb" tabindex="0" role="button" aria-label="Johannesburg">
+          <circle class="halo" cx="655" cy="1075" r="24"/>
+          <circle class="dot" cx="655" cy="1075" r="9"/>
+          <text class="name" x="673" y="1071">Johannesburg</text>
+          <text class="sub" x="673" y="1087">PE3 · VRF CUSTOMERSF-JHB</text>
+        </g>
+        <g class="pop transit" data-id="rr" tabindex="0" role="button" aria-label="Route Reflector">
+          <circle class="halo" cx="470" cy="520" r="20"/>
+          <circle class="dot" cx="470" cy="520" r="7"/>
+          <text class="name" x="486" y="516" style="font-size:14px">RR1</text>
+          <text class="sub" x="486" y="531">iBGP route reflector</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="rail">
+      <div class="detail" id="detail" aria-live="polite"><!-- filled by JS --></div>
+      <div class="legend">
+        <h3>How to read the map</h3>
+        <ul>
+          <li><span class="sw" style="background:var(--fibre)"></span><span><b>Glowing fibre</b> — the physical subsea cable / MPLS backbone carrying every customer.</span></li>
+          <li><span class="sw" style="background:var(--vpn)"></span><span><b>Green link</b> — a customer VPN: sites that share a route-target and <i>can</i> reach each other.</span></li>
+          <li><span class="sw" style="background:var(--isolated)"></span><span><b>Red dashes</b> — a blocked path: different customers, kept apart by RT filtering.</span></li>
+          <li><span class="sw" style="background:var(--brass)"></span><span><b>Brass ring</b> — Barcelona: the European hub, internet breakout and your pyATS NOC.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="story">
+    <h3>The one thing to say out loud in the interview</h3>
+    <p>“This is a provider backbone from Barcelona into Africa. The core — the P routers —
+      just label-switch; they never see a customer route. Each coastal <b>PoP is a PE</b>
+      that drops customers into their own <b>VRF</b>.”</p>
+    <p><b>Dakar and Johannesburg are one customer with two sites.</b> They share route-target
+      <code>65100:1</code>, so the backbone imports each into the other's VRF and they reach
+      each other across the whole continent. <b>Lagos is a different customer</b>
+      (<code>NIGER-MPLS</code>, RT <code>65100:3</code>): its routes are never imported next
+      door, so a Lagos→Dakar ping <b>fails by design</b>. Isolation here isn't a firewall —
+      it's the RT import/export policy. That failed ping is the proof it works.</p>
+  </div>
+
+  <footer>Every link on this map is asserted by the <b>pyATS suite</b> — same-VPN reachability must pass, cross-customer must fail.</footer>
+</div>
+
+<script>
+(function(){
+  var POPS = {
+    bcn:{tag:"Head-end · Europe", name:"Barcelona", coords:"41.4°N, 2.2°E",
+      chip:'<span class="chip hub">EU HUB</span>',
+      kv:[["Lab node","UPSTREAM-ISP + UBUNTU-NOC"],["Role","Internet breakout &amp; NOC"],["ASN","AS 65000"],["You are here","pyATS control node"]],
+      note:"Where it all runs from — the Barcelona hub is both the internet gateway (eBGP to the world) and the seat of your pyATS automation. The cable south starts here."},
+    mar:{tag:"Landing · Transit", name:"Morocco landing", coords:"33.6°N, 7.6°W",
+      chip:'<span class="chip transit">P · LSR</span>',
+      kv:[["Lab node","SP-P1-CORE / SP-P2-CORE"],["Role","Backbone transit (LSR)"],["Protocols","OSPF + LDP"],["Customer VRFs","none — label switching only"]],
+      note:"A pure core hop: it swaps MPLS labels and forwards. It carries every customer's traffic but holds no customer routes — the whole point of a P router."},
+    dkr:{tag:"PoP · West Africa", name:"Dakar", coords:"14.7°N, 17.4°W",
+      chip:'<span class="chip same">VPN: 65100:1</span>',
+      kv:[["Lab node","SP-PE2-DAKAR"],["Customer","CE-SENEGAL · AS 65002"],["VRF","CUSTOMER"],["Route-target","65100:1 (shared)"]],
+      note:"Site 1 of the two-site customer. Shares RT 65100:1 with Johannesburg, so the two reach each other across the backbone — proven by a 100% ping in the lab."},
+    lgs:{tag:"PoP · Gulf of Guinea", name:"Lagos", coords:"6.5°N, 3.4°E",
+      chip:'<span class="chip iso">ISOLATED</span>',
+      kv:[["Lab node","SP-PE1-LAGOS"],["Customer","CE-NIGER · AS 65004"],["VRF","NIGER-MPLS"],["Route-target","65100:3 (own)"]],
+      note:"A different customer entirely. RT 65100:3 is never imported into the Senegal/S.Africa VPN, so Lagos→Dakar fails — correct isolation, not a fault."},
+    jhb:{tag:"PoP · Southern Africa", name:"Johannesburg", coords:"26.2°S, 28.0°E",
+      chip:'<span class="chip same">VPN: 65100:1</span>',
+      kv:[["Lab node","SP-PE3-JHB"],["Customer","SE-SOUTHAFRICA · AS 65003"],["VRF","CUSTOMERSF-JHB"],["Route-target","65100:1 (shared)"]],
+      note:"Site 2 of the same customer. Different VRF name, same RT 65100:1 as Dakar — that shared target is what stitches the two sites into one private network."},
+    rr:{tag:"Control plane", name:"Route Reflector (RR1)", coords:"non-geographic",
+      chip:'<span class="chip transit">iBGP RR</span>',
+      kv:[["Lab node","SP-RR1"],["Role","VPNv4 route reflector"],["Peers","all three PEs (clients)"],["Carries","every customer prefix"]],
+      note:"Not a place on the map — a control-plane role. Instead of a full iBGP mesh between PEs, each PE peers only with RR1, which reflects all VPNv4 routes. One session per PE instead of many."}
+  };
+  var order=["bcn","mar","dkr","lgs","jhb","rr"];
+  var svg=document.querySelector("svg.map");
+  var detail=document.getElementById("detail");
+  var sel=null;
+
+  function render(id){
+    var p=POPS[id]; if(!p) return;
+    var rows=p.kv.map(function(r){return "<dt>"+r[0]+"</dt><dd>"+r[1]+"</dd>";}).join("");
+    detail.innerHTML=
+      '<div class="tag">'+p.tag+'</div>'+
+      '<h2>'+p.name+' '+p.chip+'</h2>'+
+      '<div class="coords">'+p.coords+'</div>'+
+      '<dl class="kv">'+rows+'</dl>'+
+      '<p class="note">'+p.note+'</p>';
+    document.querySelectorAll(".pop").forEach(function(g){
+      g.setAttribute("aria-selected", g.dataset.id===id ? "true":"false");
+    });
+    sel=id;
+  }
+  document.querySelectorAll(".pop").forEach(function(g){
+    g.addEventListener("click",function(){render(g.dataset.id);});
+    g.addEventListener("keydown",function(e){
+      if(e.key==="Enter"||e.key===" "){e.preventDefault();render(g.dataset.id);}
+    });
+  });
+
+  var btnP=document.getElementById("btnPhys"), btnV=document.getElementById("btnVpn");
+  var hint=document.getElementById("modehint");
+  function mode(m){
+    svg.dataset.mode=m;
+    btnP.setAttribute("aria-pressed", m==="physical");
+    btnV.setAttribute("aria-pressed", m==="vpn");
+    hint.textContent = m==="vpn"
+      ? "Green = same customer (RT 65100:1) · Red = blocked by RT"
+      : "Lit segments = live subsea fibre";
+  }
+  btnP.addEventListener("click",function(){mode("physical");});
+  btnV.addEventListener("click",function(){mode("vpn");});
+
+  render("bcn");
+})();
+</script>
